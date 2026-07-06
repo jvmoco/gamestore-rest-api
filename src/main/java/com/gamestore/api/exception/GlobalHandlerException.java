@@ -57,6 +57,21 @@ public class GlobalHandlerException{
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erroDeValidacao);
     }
 
+    @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+    public ResponseEntity<ErroPadrao> trataBadCredentials(org.springframework.security.authentication.BadCredentialsException ex, HttpServletRequest request) {
+        String urlAcessada = request.getRequestURI();
+
+        ErroPadrao erroPadrao = new ErroPadrao(
+                Instant.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                "Usuário ou senha inválidos.",
+                urlAcessada
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(erroPadrao);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErroPadrao> redeDeSegurancaGlobal(Exception ex, HttpServletRequest request){
         String urlAcessada = request.getRequestURI();

@@ -52,11 +52,11 @@ public class JogoService {
 
     //Métodos auxiliares
     private void comporDadosDoJogo(JogoDTO dto, Jogo destino) {
-        destino.setTitulo(dto.getTitulo());
-        destino.setGenero(dto.getGenero());
-        destino.setPreco(dto.getPreco());
-        destino.setAnoLancamento(dto.getAnoLancamento());
-        List<Plataforma> plataformas = buscarEValidarPlataformas(dto.getPlataformasIds());
+        destino.setTitulo(dto.titulo());
+        destino.setGenero(dto.genero());
+        destino.setPreco(dto.preco());
+        destino.setAnoLancamento(dto.anoLancamento());
+        List<Plataforma> plataformas = buscarEValidarPlataformas(dto.plataformasIds());
         destino.setPlataformas(plataformas);
     }
 

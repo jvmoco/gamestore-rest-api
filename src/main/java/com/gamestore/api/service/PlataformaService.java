@@ -18,7 +18,7 @@ public class PlataformaService {
 
     public Plataforma salvar(PlataformaDTO plataformaDTO){
         Plataforma plataforma = new Plataforma();
-        plataforma.setNome(plataformaDTO.getNome());
+        plataforma.setNome(plataformaDTO.nome());
         return plataformaRepository.save(plataforma);
     }
 
@@ -38,7 +38,7 @@ public class PlataformaService {
 
     public void atualizar(Long id, PlataformaDTO plataformaDTO){
         Plataforma plataformaDoBanco = buscarPorId(id);
-        plataformaDoBanco.setNome(plataformaDTO.getNome());
+        plataformaDoBanco.setNome(plataformaDTO.nome());
         plataformaRepository.save(plataformaDoBanco);
     }
 }
