@@ -67,6 +67,11 @@ public class GlobalHandlerException{
         return montarRespostaErro(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(ValidacaoException.class)
+    public ResponseEntity<ErroPadrao> trataValidacaoException(ValidacaoException ex, HttpServletRequest request){
+        return montarRespostaErro(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
     private ResponseEntity<ErroPadrao> montarRespostaErro(HttpStatus status, String mensagem, HttpServletRequest request){
         ErroPadrao erroPadrao = new ErroPadrao(
                 Instant.now(),

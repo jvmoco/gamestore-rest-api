@@ -2,7 +2,9 @@ package com.gamestore.api.service;
 
 import com.gamestore.api.dto.PlataformaDTO;
 import com.gamestore.api.exception.EntidadeNaoEncontradaException;
+import com.gamestore.api.exception.ValidacaoException;
 import com.gamestore.api.model.Plataforma;
+import com.gamestore.api.repository.JogoRepository;
 import com.gamestore.api.repository.PlataformaRepository;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +13,11 @@ import java.util.List;
 @Service
 public class PlataformaService {
     private final PlataformaRepository plataformaRepository;
+    private final JogoRepository jogoRepository;
 
-    public PlataformaService(PlataformaRepository plataformaRepository){
+    public PlataformaService(PlataformaRepository plataformaRepository, JogoRepository jogoRepository){
         this.plataformaRepository = plataformaRepository;
+        this.jogoRepository = jogoRepository;
     }
 
     public Plataforma salvar(PlataformaDTO plataformaDTO){
@@ -33,6 +37,9 @@ public class PlataformaService {
 
     public void deletarPorId(Long id){
         buscarPorId(id);
+        if(jogoRepository.existsByPlataformasId(id)){
+            throw new ValidacaoException("Essa plataforma não pode ser deletada pois está em uso");
+        }
         plataformaRepository.deleteById(id);
     }
 
