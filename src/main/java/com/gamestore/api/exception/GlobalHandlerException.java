@@ -2,7 +2,6 @@ package com.gamestore.api.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,17 +16,7 @@ import java.util.List;
 public class GlobalHandlerException{
     @ExceptionHandler(EntidadeNaoEncontradaException.class)
     public ResponseEntity<ErroPadrao> trataEntidadeNaoEncontrada(EntidadeNaoEncontradaException ex, HttpServletRequest request){
-        String urlAcessada = request.getRequestURI();
-
-        ErroPadrao erroPadrao = new ErroPadrao(
-                Instant.now(),
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
-                ex.getMessage(),
-                urlAcessada
-        );
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erroPadrao);
+        return montarRespostaErro(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -59,31 +48,34 @@ public class GlobalHandlerException{
 
     @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
     public ResponseEntity<ErroPadrao> trataBadCredentials(org.springframework.security.authentication.BadCredentialsException ex, HttpServletRequest request) {
-        String urlAcessada = request.getRequestURI();
-
-        ErroPadrao erroPadrao = new ErroPadrao(
-                Instant.now(),
-                HttpStatus.UNAUTHORIZED.value(),
-                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                "Usuário ou senha inválidos.",
-                urlAcessada
-        );
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(erroPadrao);
+        return montarRespostaErro(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErroPadrao> redeDeSegurancaGlobal(Exception ex, HttpServletRequest request){
-        String urlAcessada = request.getRequestURI();
+        String msg = "Ocorreu um erro interno inesperado no servidor. Por favor, tente novamente mais tarde.";
+        return montarRespostaErro(HttpStatus.INTERNAL_SERVER_ERROR, msg, request);
+    }
 
+    @ExceptionHandler(UsuarioDuplicadoException.class)
+    public ResponseEntity<ErroPadrao> trataUsuarioDuplicado(UsuarioDuplicadoException ex, HttpServletRequest request){
+        return montarRespostaErro(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(SenhaInvalidaException.class)
+    public ResponseEntity<ErroPadrao> trataSenhaInvalida(SenhaInvalidaException ex, HttpServletRequest request){
+        return montarRespostaErro(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
+    }
+
+    private ResponseEntity<ErroPadrao> montarRespostaErro(HttpStatus status, String mensagem, HttpServletRequest request){
         ErroPadrao erroPadrao = new ErroPadrao(
                 Instant.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "Ocorreu um erro interno inesperado no servidor. Por favor, tente novamente mais tarde.",
-                urlAcessada
+                status.value(),
+                status.getReasonPhrase(),
+                mensagem,
+                request.getRequestURI()
         );
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(erroPadrao);
+        return ResponseEntity.status(status).body(erroPadrao);
     }
 }
