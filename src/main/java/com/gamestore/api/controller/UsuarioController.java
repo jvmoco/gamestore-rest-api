@@ -37,6 +37,9 @@ public class UsuarioController {
 
         repository.save(novoUsuario);
 
-        return ResponseEntity.ok("Usuário cadastrado com sucesso!");
+        DadosDetalhamentoUsuario dadosUsuario = new DadosDetalhamentoUsuario(usuario.getId(), usuario.getLogin());
+
+        URI uri = uriBuilder.path("/usuarios/{id}").buildAndExpand(usuario.getId()).toUri();
+        return ResponseEntity.created(uri).body(dadosUsuario);
     }
 }
