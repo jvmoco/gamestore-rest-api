@@ -30,7 +30,7 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public ResponseEntity cadastrar(@RequestBody @Valid DadosAutenticacao dados, UriComponentsBuilder uriBuilder) {
+    public ResponseEntity<DadosDetalhamentoUsuario> cadastrar(@RequestBody @Valid DadosAutenticacao dados, UriComponentsBuilder uriBuilder) {
         if(repository.existsByLogin(dados.login())){
             throw new UsuarioDuplicadoException("O login informado já está em uso");
         }
