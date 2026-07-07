@@ -1,16 +1,20 @@
 package com.gamestore.api.controller;
 
 import com.gamestore.api.dto.DadosAutenticacao;
+import com.gamestore.api.dto.DadosDetalhamentoUsuario;
+import com.gamestore.api.dto.MudancaDeSenha;
+import com.gamestore.api.exception.SenhaInvalidaException;
+import com.gamestore.api.exception.UsuarioDuplicadoException;
 import com.gamestore.api.model.UserRole;
 import com.gamestore.api.model.Usuario;
 import com.gamestore.api.repository.UsuarioRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/registrar")
@@ -39,11 +43,32 @@ public class UsuarioController {
 
         novoUsuario.setRole(UserRole.USER);
 
-        repository.save(novoUsuario);
+        Usuario usuario = repository.save(novoUsuario);
 
         DadosDetalhamentoUsuario dadosUsuario = new DadosDetalhamentoUsuario(usuario.getId(), usuario.getLogin());
 
         URI uri = uriBuilder.path("/usuarios/{id}").buildAndExpand(usuario.getId()).toUri();
         return ResponseEntity.created(uri).body(dadosUsuario);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> alterarSenha(@PathVariable Long id, @RequestBody MudancaDeSenha mudancaDeSenha){
+        if(mudancaDeSenha.senhaAtual().equals(mudancaDeSenha.senhaNova())){
+            throw new SenhaInvalidaException("A nova senha não pode ser igual à senha atual.");
+        }
+
+        Usuario usuarioDoBanco = repository.findById(id).orElseThrow();
+
+        if(!passwordEncoder.matches(mudancaDeSenha.senhaAtual(), usuarioDoBanco.getSenha())){
+            throw new SenhaInvalidaException("Senha inválida");
+        }
+
+        String senhaNovaCriptografada = passwordEncoder.encode(mudancaDeSenha.senhaNova());
+
+        usuarioDoBanco.setSenha(senhaNovaCriptografada);
+
+        repository.save(usuarioDoBanco);
+
+        return ResponseEntity.noContent().build();
     }
 }
