@@ -1,6 +1,7 @@
 package com.gamestore.api.controller;
 
 import com.gamestore.api.dto.DadosAutenticacao;
+import com.gamestore.api.dto.DadosCadastroUsuario;
 import com.gamestore.api.dto.DadosDetalhamentoUsuario;
 import com.gamestore.api.dto.MudancaDeSenha;
 import com.gamestore.api.exception.SenhaInvalidaException;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/registrar")
@@ -23,25 +26,20 @@ public class UsuarioController {
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
 
-    // Usando injeção por construtor, exatamente como você fez nos seus outros services!
     public UsuarioController(UsuarioRepository repository, PasswordEncoder passwordEncoder) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping
-    public ResponseEntity<DadosDetalhamentoUsuario> cadastrar(@RequestBody @Valid DadosAutenticacao dados, UriComponentsBuilder uriBuilder) {
+    public ResponseEntity<DadosDetalhamentoUsuario> cadastrar(@RequestBody @Valid DadosCadastroUsuario dados, UriComponentsBuilder uriBuilder) {
         if(repository.existsByLogin(dados.login())){
             throw new UsuarioDuplicadoException("O login informado já está em uso");
         }
 
         String senhaCriptografada = passwordEncoder.encode(dados.senha());
 
-        Usuario novoUsuario = new Usuario();
-        novoUsuario.setLogin(dados.login());
-        novoUsuario.setSenha(senhaCriptografada);
-
-        novoUsuario.setRole(UserRole.USER);
+        Usuario novoUsuario = new Usuario(dados.login(), senhaCriptografada, dados.roles());
 
         Usuario usuario = repository.save(novoUsuario);
 

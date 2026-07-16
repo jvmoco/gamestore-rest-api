@@ -11,21 +11,38 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfigurations {
+    private final SecurityFilter securityFilter;
+    private final HandlerExceptionResolver resolver;
+
+    SecurityConfigurations(SecurityFilter securityFilter, HandlerExceptionResolver handlerExceptionResolver){
+        this.securityFilter = securityFilter;
+        this.resolver = handlerExceptionResolver;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable()) // Desativa a proteção padrão contra ataques em sites (não aplicável para APIs REST)
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Define que a API não guarda estado (não usa sessão)
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/registrar").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/jogos/**").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/jogos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/jogos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/jogos/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+
                 .build();
     }
 

@@ -6,7 +6,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "TB_USUARIO")
@@ -18,7 +19,17 @@ public class Usuario implements UserDetails{
     private String login;
     private String senha;
     @Enumerated(EnumType.STRING)
-    private UserRole role;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "TB_USUARIO_ROLES")
+    private Set<UserRole> roles = new HashSet<>();
+
+    public Usuario(String login, String senha, Set<UserRole> roles){
+        this.login = login;
+        this.senha = senha;
+        this.roles = roles;
+    }
+
+    public Usuario(){}
 
     @Override
     public boolean isAccountNonExpired() {
@@ -52,11 +63,7 @@ public class Usuario implements UserDetails{
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities(){
-        if(this.role != null && this.role == UserRole.ADMIN){
-            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
-        } else {
-            return List.of(new SimpleGrantedAuthority("ROLE_USER"));
-        }
+        return this.roles.stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role.name())).toList();
     }
 
     public String getSenha() {
@@ -67,12 +74,12 @@ public class Usuario implements UserDetails{
         this.senha = senha;
     }
 
-    public UserRole getRole() {
-        return role;
+    public Set<UserRole> getRoles() {
+        return roles;
     }
 
-    public void setRole(UserRole role) {
-        this.role = role;
+    public void setRoles(Set<UserRole> roles) {
+        this.roles = roles;
     }
 
     public String getLogin() {
