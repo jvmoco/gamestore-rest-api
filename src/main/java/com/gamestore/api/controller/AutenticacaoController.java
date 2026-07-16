@@ -1,8 +1,10 @@
 package com.gamestore.api.controller;
 
 import com.gamestore.api.dto.DadosAutenticacao;
+import com.gamestore.api.dto.DadosTokenJWT;
+import com.gamestore.api.model.Usuario;
+import com.gamestore.api.service.TokenService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,18 +17,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/login")
 public class AutenticacaoController {
 
-    @Autowired
-    private AuthenticationManager manager; // A tomada mágica puxando o gerenciador que expusemos na configuração
+    private final AuthenticationManager manager;
+    private final TokenService tokenService;
+
+    AutenticacaoController(AuthenticationManager authenticationManager, TokenService tokenService){
+        this.manager = authenticationManager;
+        this.tokenService = tokenService;
+    }
 
     @PostMapping
     public ResponseEntity efetuarLogin(@RequestBody @Valid DadosAutenticacao dados) {
-        // 1. Transforma o login e senha que vieram do Postman em um "Token" de autenticação do Spring
+
         var authenticationToken = new UsernamePasswordAuthenticationToken(dados.login(), dados.senha());
 
-        // 2. Entrega para o Gerenciador validar. Ele vai chamar o seu Service, que chama o seu Repositório, que vai ao Banco.
         var authentication = manager.authenticate(authenticationToken);
 
-        // 3. Se a senha estiver certa, por enquanto vamos apenas devolver um OK (200)
-        return ResponseEntity.ok().build();
+        Usuario usuarioLogado = (Usuario) authentication.getPrincipal();
+
+        String tokenJWT = tokenService.gerarToken(usuarioLogado);
+
+        return ResponseEntity.ok(new DadosTokenJWT(tokenJWT));
     }
 }
