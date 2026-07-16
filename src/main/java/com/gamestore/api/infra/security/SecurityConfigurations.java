@@ -43,10 +43,13 @@ public class SecurityConfigurations {
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
 
+                .exceptionHandling(eh -> eh.accessDeniedHandler((request, response, accessDeniedException) -> {
+                    resolver.resolveException(request, response, null, accessDeniedException);
+                }))
+
                 .build();
     }
 
-    // Adicione este método dentro da classe SecurityConfigurations
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();

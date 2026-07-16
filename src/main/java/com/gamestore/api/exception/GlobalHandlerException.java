@@ -72,6 +72,12 @@ public class GlobalHandlerException{
         return montarRespostaErro(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ErroPadrao> trataAcessoNegado(org.springframework.security.access.AccessDeniedException ex, HttpServletRequest request) {
+        String msg = "Acesso negado. Você não possui permissão para acessar este recurso.";
+        return montarRespostaErro(HttpStatus.FORBIDDEN, msg, request);
+    }
+
     private ResponseEntity<ErroPadrao> montarRespostaErro(HttpStatus status, String mensagem, HttpServletRequest request){
         ErroPadrao erroPadrao = new ErroPadrao(
                 Instant.now(),
