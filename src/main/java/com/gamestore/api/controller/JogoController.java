@@ -4,9 +4,10 @@ import com.gamestore.api.dto.JogoDTO;
 import com.gamestore.api.model.Jogo;
 import com.gamestore.api.service.JogoService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 
@@ -20,19 +21,24 @@ public class JogoController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Jogo salvar(@Valid @RequestBody JogoDTO jogoDTO){
-        return jogoService.salvar(jogoDTO);
+    public ResponseEntity<Jogo> salvar(@Valid @RequestBody JogoDTO jogoDTO, UriComponentsBuilder uriBuilder){
+        Jogo jogo =  jogoService.salvar(jogoDTO);
+
+        var uri = uriBuilder.path("/jogos/{id}").buildAndExpand(jogo.getId()).toUri();
+
+        return ResponseEntity.created(uri).body(jogo);
     }
 
     @GetMapping
-    public List<Jogo> listarTodos(){
-        return jogoService.listarTodos();
+    public ResponseEntity<List<Jogo>> listarTodos(){
+        List<Jogo> jogos = jogoService.listarTodos();
+        return ResponseEntity.ok(jogos);
     }
 
     @GetMapping("/{id}")
-    public Jogo buscarPorId(@PathVariable Long id){
-        return jogoService.buscarPorId(id);
+    public ResponseEntity<Jogo> buscarPorId(@PathVariable Long id){
+        Jogo jogo = jogoService.buscarPorId(id);
+        return ResponseEntity.ok(jogo);
     }
 
     @DeleteMapping("/{id}")
